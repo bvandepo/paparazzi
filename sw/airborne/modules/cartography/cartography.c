@@ -77,7 +77,7 @@ printf("%5d: STR: "#EXP"\n",CPTDEBUG);fflush(stdout);CPTDEBUG++;
 (sqrt(  ( (P1X) * (P1X) ) + ( (P1Y) * (P1Y) )  ) )
 
 
-//max distance between the estimator position and an objective points to consider that the objective points is atteined
+//max distance between the estimator position and an objective points to consider that the aircraft is at the objective point 
 
 #define DISTLIMIT 30
 
@@ -86,26 +86,17 @@ printf("%5d: STR: "#EXP"\n",CPTDEBUG);fflush(stdout);CPTDEBUG++;
 uint16_t railnumberSinceBoot=1; //used to count the number of rails the plane has achieved since the boot, to number the sequences of saved images
 //the number 1 is reserved for snapshot fonctions that take only one image, the 2-65535 numbers are used to number the following sequences
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-#define USE_ONBOARD_CAMERA
-
-#ifdef USE_ONBOARD_CAMERA
-uint16_t camera_snapshot_image_number=0;
-#endif
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////// 
+uint16_t camera_snapshot_image_number=0;  // value being sent by telemetry, can be 0 if the aircraft is not in a rail, or railnumberSinceBoot oppositely
+ 
 bool_t survey_losange_uturn;//this flag indicates if the aircraft is turning between 2 rails (1) or if it is flying straight forward in the rail direction (0) 
 
-int railnumber;  //indicate the number of the rail being acquired
+int railnumber;  //indicate the number of the rail being acquired, variable used for navigation purpose
 int numberofrailtodo; 
 
-float distrail;  //distance between adjacent rails in meters, the value is set in the init function
+float distrail;  //distance between adjacent rails in meters, the value is set in the init function, if it is set to 0, it means that the aircraft should just do 2 rails passing through the 4 corners of the losange
 float distplus;  //distance that the aircraft should travel before and after a rail before turning to the next rails in meters, the value is set in the init function
 
-float distrailinteractif=60; //a cheangable value that can be set interactively in the GCS, not used at that time, it can be used to choose the right value while the aircraft is flying
 
 
 static struct point point1,point2,point3; // 3 2D points used for navigation
@@ -114,26 +105,18 @@ static struct point vec12,vec13;
 float norm12,norm13; // norms of 12 & 13  vectors
 
 
-
-
 float tempx,tempy;  //temporary points for exchanges
 float angle1213; //angle between 12 & 13  vectors
 float signforturn; //can be +1 or -1, it is used to compute the direction of the UTURN between rails
 
 float tempcircleradius;// used to compute the radius of the UTURN after a rail
 float circleradiusmin=40;
-
-////////////////////////////////////////////////////////////////////////////////////////////////
 float normBM,normAM,distancefromrail;
-
-
 float course_next_rail;
 float angle_between;
-
 bool_t ProjectionInsideLimitOfRail;
 
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "modules/cartography/cartography.h"
 #include "generated/modules.h"
@@ -147,22 +130,22 @@ bool_t ProjectionInsideLimitOfRail;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-void init_carto(void) {
+void init_carto(void) 
+{
 }
-
-void periodic_downlink_carto(void) {
+////////////////////////////////////////////////////////////////////////////////////////////////
+void periodic_downlink_carto(void) 
+{
 	DOWNLINK_SEND_CAMERA_SNAPSHOT(DefaultChannel,&camera_snapshot_image_number);
 }
-
-void start_carto(void) {
+////////////////////////////////////////////////////////////////////////////////////////////////
+void start_carto(void) 
+{
 }
-
-void stop_carto(void) {
+////////////////////////////////////////////////////////////////////////////////////////////////
+void stop_carto(void) 
+{
 }
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 bool_t nav_survey_Inc_railnumberSinceBoot(void)
 {
@@ -174,60 +157,49 @@ bool_t nav_survey_Snapshoot(void)
 {
 	camera_snapshot_image_number=railnumberSinceBoot;
 	PRTDEBSTR(SNAPSHOT)
-  cartography_periodic_downlink_carto_status = MODULES_START;
-	return FALSE; 
-	
+    cartography_periodic_downlink_carto_status = MODULES_START;
+	return FALSE; 	
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 bool_t nav_survey_Snapshoot_Continu(void)
 {
 	camera_snapshot_image_number=railnumberSinceBoot;
 	PRTDEBSTR(SNAPSHOT)
-  cartography_periodic_downlink_carto_status = MODULES_START;
+    cartography_periodic_downlink_carto_status = MODULES_START;
 	return TRUE; 
-	
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
 bool_t nav_survey_StopSnapshoot(void)
 {
 	camera_snapshot_image_number=0;
 	PRTDEBSTR(STOP SNAPSHOT)
-  cartography_periodic_downlink_carto_status = MODULES_START;
-	return FALSE; 
-	
+    cartography_periodic_downlink_carto_status = MODULES_START;
+	return FALSE; 	
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////
-
 bool_t nav_survey_computefourth_corner(uint8_t wp1, uint8_t wp2,  uint8_t wp3, uint8_t wp4 )
 {
 	waypoints[wp4].x=waypoints[wp2].x+waypoints[wp3].x-waypoints[wp1].x;
-	waypoints[wp4].y=waypoints[wp2].y+waypoints[wp3].y-waypoints[wp1].y;
-	
+	waypoints[wp4].y=waypoints[wp2].y+waypoints[wp3].y-waypoints[wp1].y;	
 	PRTDEBSTR(nav_survey_computefourth_corner)
 	PRTDEB(f,waypoints[wp4].x)
 	PRTDEB(f,waypoints[wp4].y)
 	return FALSE; 
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 bool_t  nav_survey_ComputeProjectionOnLine(struct point pointAf,struct point pointBf,float estimator_xf,float estimator_yf,float *normAMf,float *normBMf,float *distancefromrailf);
-
-
 bool_t  nav_survey_ComputeProjectionOnLine(struct point pointAf,struct point pointBf,float estimator_xf,float estimator_yf,float *normAMf,float *normBMf,float *distancefromrailf)
 //return if the projection of the estimator on the AB line is located inside the AB interval
 {
 	float a,b,c,xa,xb,xc,ya,yb,yc;
 	float f;
 	float AA1;
-	float BB1;
+	float BB1;  
 	float YP;
 	float XP;
     	
 	float AMx,AMy,BMx,BMy;
-	//+++++++++++++++++++++++++ATTENTION AUX DIVISIONS PAR 0!!!!!!!!!!!!!!!
-
-	
-	
+	//+++++++++++++++++++++++++ATTENTION AUX DIVISIONS PAR 0!!!!!!!!!!!!!	
 	xb=pointAf.x;
 	yb=pointAf.y;
 	
@@ -243,8 +215,7 @@ bool_t  nav_survey_ComputeProjectionOnLine(struct point pointAf,struct point poi
 	c = (yb - yc) * xb + (xc - xb) * yb ;
 	
 	//calcul de la distance de la droite à l'avion
-	
-	
+		
 	if (fabs(a)>1e-10)
 		*distancefromrailf = fabs((a * xa + b * ya + c) / sqrt(a * a + b * b)); //denominateur =0 iniquement si a=b=0 //peut arriver si 2 waypoints sont confondus
 	else  				
@@ -269,10 +240,7 @@ bool_t  nav_survey_ComputeProjectionOnLine(struct point pointAf,struct point poi
 	}
 	else
 		return 0;					
-	
-	
-	
-	
+		
 	XP = (-c - b * YP) / a ; //a !=0 deja testé avant
 	//+++++++++++++++++++++++++ATTENTION AUX DIVISIONS PAR 0!!!!!!!!!!!!!!!
 	//+++++++++++++++++++++++++ATTENTION AUX DIVISIONS PAR 0!!!!!!!!!!!!!!!
@@ -408,25 +376,14 @@ bool_t nav_survey_losange_carto_init(uint8_t wp1, uint8_t wp2,  uint8_t wp3, flo
 ////////////////////////////////////////////////////////////////////////////////////////////////
 bool_t nav_survey_losange_carto(void)
 {
-	//test pour modifier en vol la valeur distrail
-	
-	//distrail=distrailinteractif;
-	
-	
+ 
 	//by default, a 0 is sent in the message DOWNLINK_SEND_CAMERA_SNAPSHOT,
 	//if the aircraft is inside the region to map, camera_snapshot_image_number will be equal to the number of rail since the last boot (not since the nav_survey_losange_carto_init, in order to get different values for differents calls to the cartography function  (this number is used to name the images on the hard drive
 	camera_snapshot_image_number=0;
-	
-	
 	PRTDEB(f,distrail)
-	
-	
-	
 	PRTDEBSTR(nav_survey_losange_carto)
 	PRTDEB(d,railnumber)
-	
 	PRTDEB(d,railnumberSinceBoot)
-	
 	//PRTDEB(f,estimator_x)
 	//PRTDEB(f,estimator_y)
 	
