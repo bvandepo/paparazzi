@@ -151,6 +151,12 @@ c_ivy_client_example_2: c_ivy_client_example_2.c
 c_ivy_client_example_3: c_ivy_client_example_3.c
 	$(CC) $(GTK_CFLAGS) -o $@ $< $(GTK_LDFLAGS)
 
+c_ivy_client_alarm: c_ivy_client_alarm.c
+	$(CC) $(GTK_CFLAGS) -o $@ $< $(GTK_LDFLAGS)
+
+cleanc_ivy_client_alarm:
+	rm -f c_ivy_client_alarm.o c_ivy_client_alarm
+
 
 #
 # Dependencies

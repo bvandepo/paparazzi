@@ -16,13 +16,13 @@
     <file name="adc_generic.c"/>
     <raw>
 
-ifneq ($(ADC_CHANNEL_GENERIC1),)
+#ifneq ($(ADC_CHANNEL_GENERIC1),)
 ap.CFLAGS += -DADC_CHANNEL_GENERIC1=$(ADC_CHANNEL_GENERIC1) -DUSE_$(ADC_CHANNEL_GENERIC1)
-endif
+#endif
 
-ifneq ($(ADC_CHANNEL_GENERIC2),)
+#ifneq ($(ADC_CHANNEL_GENERIC2),)
 ap.CFLAGS += -DADC_CHANNEL_GENERIC2=$(ADC_CHANNEL_GENERIC2) -DUSE_$(ADC_CHANNEL_GENERIC2)
-endif
+#endif
 
     </raw>
   </makefile>
