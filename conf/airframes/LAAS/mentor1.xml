@@ -1,6 +1,8 @@
 <!DOCTYPE airframe SYSTEM "../airframe.dtd">
 
-<airframe name="Mentor Laas M1 Tiny 1.1">
+
+<airframe name="Mentor Laas N1 Tiny 1.1">
+
 
   <firmware name="fixedwing">
     <target name="sim" 			board="pc">
@@ -26,7 +28,7 @@
     <subsystem name="attitude" 		type="infrared">
       <configure name="ADC_IR1" value="ADC_1"/>
       <configure name="ADC_IR2" value="ADC_0"/>
-      <configure name="ADC_IR_TOP" value="ADC_2"/>
+      <configure name="ADC_IR_TOP" value="ADC_3"/>
     </subsystem>
     <subsystem name="gps" 		    type="ublox_lea4p"/>
     <subsystem name="navigation"/>
@@ -34,13 +36,13 @@
   </firmware>
 
   <firmware name="setup">
-    <target name="tunnel"           board="tiny_0.99" />
-    <target name="setup_actuators"  board="tiny_0.99" />
+    <target name="tunnel"           board="tiny_1.1" />
+    <target name="setup_actuators"  board="tiny_1.1" />
   </firmware>
 
   <modules>
-   <load name="cartography.xml"/>
- <load name="adc_generic.xml">
+    <load name="cartography.xml"/>
+    <load name="adc_generic.xml">
       <configure name="ADC_CHANNEL_GENERIC1" value="ADC_3"/>
       <configure name="ADC_CHANNEL_GENERIC2" value="ADC_4"/>
     </load>
@@ -51,11 +53,11 @@
     <servo name="THROTTLE"   no="0" min="1200" neutral="1200" max="2000"/>
 <!-- Aileron gauche (blanc) oppose de l'aileron droit (jaune) -->
 <!-- max = valeur aileron vers le bas-->
-    <servo name="AILERON_LEFT"  no="3" min="1900" neutral="1450" max="1100"/>
+
+    <servo name="AILERON_LEFT"  no="3" min="1900" neutral="1550" max="1100"/>
     <servo name="AILERON_RIGHT" no="1" min="1900" neutral="1520" max="1100"/>
     <servo name="RUDDER" no="4" min="1850" neutral="1500" max="1150"/>
-    <servo name="ELEVATOR" no="5" min="2000" neutral="1568" max="1150"/>
-
+    <servo name="ELEVATOR" no="5" min="2200" neutral="1400" max="1000"/>
   </servos>
 
   <commands>
@@ -94,7 +96,7 @@
 
   <section name="INFRARED" prefix="IR_">
     <define name="ROLL_NEUTRAL_DEFAULT" value="-2.6" unit="deg"/>
-    <define name="PITCH_NEUTRAL_DEFAULT" value="8.6" unit="deg"/>
+    <define name="PITCH_NEUTRAL_DEFAULT" value="0.6" unit="deg"/>
 
     <define name="HORIZ_SENSOR_TILTED" value="1"/>
     <define name="IR2_SIGN" value="-1"/>
@@ -110,18 +112,18 @@
 
     <define name="LATERAL_CORRECTION" value="1."/>
     <define name="LONGITUDINAL_CORRECTION" value="1."/>
-    <define name="VERTICAL_CORRECTION" value="1.5"/>
+    <define name="VERTICAL_CORRECTION" value="1."/>
   </section>
 
   <section name="BAT">
-    <define name="MILLIAMP_AT_FULL_THROTTLE" value="8600"/>
+    <define name="MILLIAMP_AT_FULL_THROTTLE" value="40000"/>
     <define name="CATASTROPHIC_BAT_LEVEL" value="9.3" unit="V"/>
   </section>
 
   <section name="MISC">
-    <define name="NOMINAL_AIRSPEED" value="11." unit="m/s"/>
-    <define name="MINIMUM_AIRSPEED" value="8." unit="m/s"/>
-    <define name="MAXIMUM_AIRSPEED" value="16." unit="m/s"/>
+    <define name="NOMINAL_AIRSPEED" value="18." unit="m/s"/>
+    <define name="MINIMUM_AIRSPEED" value="11." unit="m/s"/>
+    <define name="MAXIMUM_AIRSPEED" value="33." unit="m/s"/>
     <define name="CARROT" value="3." unit="s"/>
     <define name="KILL_MODE_DISTANCE" value="(1.5*MAX_DIST_FROM_HOME)"/>
 <!--    <define name="XBEE_INIT" value="\"ATPL2\rATRN1\rATTT80\rATBD6\rATWR\r\""/> -->
@@ -129,7 +131,7 @@
 <!--    <define name="NO_XBEE_API_INIT" value="TRUE"/> -->
     <define name="ALT_KALMAN_ENABLED" value="TRUE"/>
     <define name="TRIGGER_DELAY" value="1."/>
-    <define name="DEFAULT_CIRCLE_RADIUS" value="60."/>
+    <define name="DEFAULT_CIRCLE_RADIUS" value="80."/>
   </section>
 
   <section name="VERTICAL CONTROL" prefix="V_CTL_">
@@ -144,13 +146,13 @@
     <define name="AUTO_THROTTLE_NOMINAL_CRUISE_THROTTLE" value="0.55"/>
     <define name="AUTO_THROTTLE_MIN_CRUISE_THROTTLE" value="0.30"/>
     <define name="AUTO_THROTTLE_MAX_CRUISE_THROTTLE" value="0.90"/>
-    <define name="AUTO_THROTTLE_LOITER_TRIM" value="1500"/>
-    <define name="AUTO_THROTTLE_DASH_TRIM" value="-2000"/>
-    <define name="AUTO_THROTTLE_CLIMB_THROTTLE_INCREMENT" value="0.15" unit="%/(m/s)"/>
-    <define name="AUTO_THROTTLE_PGAIN" value="-0.05"/>
-    <define name="AUTO_THROTTLE_IGAIN" value="0.1"/>
-    <define name="AUTO_THROTTLE_PITCH_OF_VZ_PGAIN" value="0.05"/>
-
+    <define name="AUTO_THROTTLE_LOITER_TRIM" value="0"/>
+    <define name="AUTO_THROTTLE_DASH_TRIM" value="0"/>
+    <define name="AUTO_THROTTLE_CLIMB_THROTTLE_INCREMENT" value="0.05" unit="%/(m/s)"/>
+    <define name="AUTO_THROTTLE_PGAIN" value="-0.03"/>
+    <define name="AUTO_THROTTLE_IGAIN" value="0.05"/>
+    <define name="AUTO_THROTTLE_PITCH_OF_VZ_PGAIN" value="0.03"/>
+    
     <!-- auto pitch inner loop -->
     <define name="AUTO_PITCH_PGAIN" value="-0.065"/>
     <define name="AUTO_PITCH_IGAIN" value="0.15"/>
