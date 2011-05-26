@@ -195,6 +195,10 @@ utm_north_delta=utm_north_max-utm_north_min;
 printf("utm_east_delta: %d\n",utm_east_delta);
 printf("utm_north_delta: %d\n",utm_north_delta);
 //utm are expressed in cm
+
+if ((( utm_east_delta>0) && (utm_north_delta>0) ) )
+{	
+
 printf("------------------------------------------------------------------------------\n");
 printf("generating image\n");
 
@@ -268,10 +272,22 @@ sprintf(chainecommande,"convert im_traj.ppm %s.png",argv[1]);
 system(chainecommande);
 
 printf("------------------------------------------------------------------------------\n");
-fclose(f);
+printf("erasing temporary image\n");
+ sprintf(chainecommande,"rm im_traj.ppm"); 
+system(chainecommande);
 
 //  std::cout << "Bye, world!\n";
-	return 0;
+}
+else
+	{
+	printf("empty log?\n");
+	}
+
+
+printf("------------------------------------------------------------------------------\n");
+fclose(f);
+
+return 0;
 
 }
 

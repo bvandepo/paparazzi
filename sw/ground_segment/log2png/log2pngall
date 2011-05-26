@@ -1,9 +1,11 @@
-#/!bin/sh
+#!/bin/bash
 #pour appliquer a tous les fichiers du dossier logs/
 #http://www.c-sait.net/cours/scripts.php
-for fichier in "../../../var/logs/*.data"
+cd "../../../var/logs/"
+# for fichier in "../../../var/logs/*.data"
+for fichier in *.data
 do
   echo $fichier
-  ./log2png $fichier 100
+  ../../sw/ground_segment/log2png/log2png $fichier 100
 done
-
+cd ../../sw/ground_segment/log2png
