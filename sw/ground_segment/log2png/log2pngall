@@ -1,0 +1,9 @@
+#/!bin/sh
+#pour appliquer a tous les fichiers du dossier logs/
+#http://www.c-sait.net/cours/scripts.php
+for fichier in "../../../var/logs/*.data"
+do
+  echo $fichier
+  ./log2png $fichier 100
+done
+
