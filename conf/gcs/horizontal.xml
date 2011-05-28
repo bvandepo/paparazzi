@@ -1,14 +1,20 @@
-<!DOCTYPE layout SYSTEM "layout.dtd">
-
 <layout width="1024" height="768">
- <rows>
-  <widget size="500" name="map2d"/>
-  <columns>
-   <rows size="375">
-    <widget size="200" name="strips"/>
-   </rows>
-   <widget size="400" name="aircraft"/>
-   <widget name="alarms"/>
-  </columns>
- </rows>
+  <rows>
+    <widget NAME="map2d" SIZE="500">
+      <papget type="message_field" display="text" x="57" y="421">
+        <property name="scale" value="0.0166"/>
+        <property name="field" value="ADC_GENERIC:val1"/>
+        <property name="format" value="%.2f"/>
+        <property name="size" value="15."/>
+        <property name="color" value="green"/>
+      </papget>
+    </widget>
+    <columns>
+      <rows SIZE="375">
+        <widget NAME="strips" SIZE="200"/>
+      </rows>
+      <widget NAME="aircraft" SIZE="400"/>
+      <widget NAME="alarms"/>
+    </columns>
+  </rows>
 </layout>
