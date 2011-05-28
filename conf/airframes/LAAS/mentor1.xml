@@ -43,7 +43,7 @@
   <modules>
     <load name="cartography.xml"/>
     <load name="adc_generic.xml">
-      <configure name="ADC_CHANNEL_GENERIC1" value="ADC_3"/>
+      <configure name="ADC_CHANNEL_GENERIC1" value="ADC_2"/>
       <configure name="ADC_CHANNEL_GENERIC2" value="ADC_4"/>
     </load>
   </modules>
