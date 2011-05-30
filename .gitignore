@@ -1,3 +1,5 @@
+/sw/ground_segment/tmtc/c_ivy_client_alarm
+
 *.so
 *.[oa]
 *.out
