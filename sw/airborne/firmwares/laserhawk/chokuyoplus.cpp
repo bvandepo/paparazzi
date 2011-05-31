@@ -6,10 +6,11 @@ CHokuyoPlus::CHokuyoPlus(char * deviceNameInit)
     sprintf(deviceName,"%s",deviceNameInit);
     //deviceName = strdup(deviceNameInit);
 
-    data.angle = (FLOATHOKUYO*)malloc(1080*sizeof(FLOATHOKUYO));  //TODO: IL y a 1081 points à traiter!!!!
-    data.depth = (uint32_t*)malloc(1080*sizeof(uint32_t));
-    data.x_data = (FLOATHOKUYO*)malloc(1080*sizeof(FLOATHOKUYO));
-    data.y_data = (FLOATHOKUYO*)malloc(1080*sizeof(FLOATHOKUYO));
+    data.angle = (FLOATHOKUYO*)malloc(1081*sizeof(FLOATHOKUYO));  //TODO: IL y a 1081 points à traiter!!!!
+    data.depth = (uint32_t*)malloc(1081*sizeof(uint32_t));
+    data.intensity = (uint32_t*)malloc(1081*sizeof(uint32_t));
+    data.x_data = (FLOATHOKUYO*)malloc(1081*sizeof(FLOATHOKUYO));
+    data.y_data = (FLOATHOKUYO*)malloc(1081*sizeof(FLOATHOKUYO));
 
     nb_scan = 0;
     stopSaveReplay();
@@ -23,6 +24,7 @@ CHokuyoPlus::~CHokuyoPlus()
 {
     free(data.angle);
     free(data.depth);
+    free(data.intensity);
     free(data.x_data);
     free(data.y_data);
 }
@@ -56,8 +58,8 @@ void CHokuyoPlus::open_port()
         baud = 19200;
 	//baud = 500000;
         speed = 2400;
-        clusterCount = 1;
-        getIntensities = false;
+        clusterCount = 1; //47;  //1081=23*47   ca ne marche qu'avec 1, donc il lit les valeurs une par une...
+        getIntensities = false; //non utilisé
         getNew = false;
         verbose = false;
 
@@ -86,8 +88,6 @@ void CHokuyoPlus::open_port()
         port_open = true;
     }
 }
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CHokuyoPlus::close_port()
 {
@@ -97,17 +97,11 @@ void CHokuyoPlus::close_port()
         port_open = false;
     }
 }
-
-
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CHokuyoPlus::setReplayFileName(string fileNameInit)
 {
     fileName = fileNameInit;
 }
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CHokuyoPlus::startSaveReplay()
 {
@@ -116,44 +110,84 @@ void CHokuyoPlus::startSaveReplay()
     else
         saveReplay = 0;
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void CHokuyoPlus::stopSaveReplay()
 {
     saveReplay=0;
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void CHokuyoPlus::seekReplay(int new_nb_scan)
 {
     nb_scan=new_nb_scan;
     if (nb_scan < 0) nb_scan=0;
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CHokuyoPlus::getRange()
+//ATTENTION Cette fonction est tres lente, et je n'arrive à acquerir que 40scans en 3 secondes au lieu d'une...
+//modif de clusterCount ne fonctionne pas..
+double CHokuyoPlus::getRangeAndIntensity()
 {
-            timespec  __tp;
-            int toto = clock_gettime(CLOCK_REALTIME,&__tp);
 
-            // Get range data
-            hokuyo_aist::HokuyoData hokuyo_aistdata;
-	    
-            if (startAngle == 0.0 && endAngle == 0.0) {
-                    laser.GetRanges(&hokuyo_aistdata, firstStep, lastStep, clusterCount);
-            } else {
-                    laser.GetRangesByAngle(&hokuyo_aistdata, startAngle, endAngle, clusterCount);
-            }
+    //timespec  __tp;
+    //int toto = clock_gettime(CLOCK_REALTIME,&__tp); //not working on mac
+    struct timeval restrict;
+    gettimeofday(&restrict , NULL);
+    hokuyotime=  restrict.tv_sec+restrict.tv_usec*1e-6;
+    // Get range data
+    static hokuyo_aist::HokuyoData hokuyo_aistdata;
 
-            for (int i = 0 ; i <= lastStep-firstStep ; i++) {
-                data.depth[i] = hokuyo_aistdata[i];
-            }
-	    
-            hokuyotime = __tp.tv_sec + __tp.tv_nsec*1e-9;
+    static int t=0;
+    if (startAngle == 0.0 && endAngle == 0.0) {
+        //     laser.SetPower(true);
+        /*     printf("intensity\n");
+        fflush(stdout);
+     */
+      // if (t==0)
+        {
+            //laser.GetNewRangesAndIntensities (&hokuyo_aistdata        , firstStep, lastStep, clusterCount);
+laser.GetNewRangesAndIntensities (&hokuyo_aistdata        , firstStep, lastStep, 1);
+            t++;
+        }
+       //else
+        //   laser.GetNewRangesAndIntensities (&hokuyo_aistdata        , 1, 200, clusterCount);
 
-	    printf("START%lf\n", hokuyotime);
+        //  laser.GetNewRangesAndIntensities (&hokuyo_aistdata        , 1, 10, 1);
 
+        //laser.GetRanges(&hokuyo_aistdata, firstStep, lastStep, clusterCount);
+    } else {
+        // laser.GetRangesByAngle(&hokuyo_aistdata, startAngle, endAngle, clusterCount);
+    }
+
+    uint32_t* intensity= (uint32_t*)hokuyo_aistdata.Intensities();
+
+    for (int i = 0 ; i <= lastStep-firstStep ; i++)
+    {
+        data.depth[i] = hokuyo_aistdata[i];
+        data.intensity[i]=intensity[i];
+    }
     nb_scan++;
+    return hokuyotime;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double CHokuyoPlus::getRange()
+{
+
+    //timespec  __tp;
+    //int toto = clock_gettime(CLOCK_REALTIME,&__tp); //not working on mac
+    struct timeval restrict;
+    gettimeofday(&restrict , NULL);
+    hokuyotime=  restrict.tv_sec+restrict.tv_usec*1e-6;
+    // Get range data
+    hokuyo_aist::HokuyoData hokuyo_aistdata;
+
+    if (startAngle == 0.0 && endAngle == 0.0) {
+        laser.GetRanges(&hokuyo_aistdata, firstStep, lastStep, clusterCount);
+    } else {
+        laser.GetRangesByAngle(&hokuyo_aistdata, startAngle, endAngle, clusterCount);
+    }
+
+    for (int i = 0 ; i <= lastStep-firstStep ; i++) {
+        data.depth[i] = hokuyo_aistdata[i];
+    }
+    nb_scan++;
+    return hokuyotime;
 }
