@@ -12,6 +12,9 @@
 #include <string>
 
 
+#include <sys/time.h>
+
+
 #define FLOATHOKUYO float
 //attention si on passe en double, il faudra modifier les printf %f en %lf
 
@@ -32,6 +35,8 @@ using namespace std;
 
 typedef struct {
     uint32_t* depth;
+    uint32_t* intensity;
+
     FLOATHOKUYO * x_data;
     FLOATHOKUYO * y_data;
     FLOATHOKUYO * angle;
@@ -46,7 +51,9 @@ public:
     ~CHokuyoPlus();
     void open_port();
     void close_port();
-    void getRange();
+    double getRange();
+    double getRangeAndIntensity();
+
     void setReplayFileName(string fileNameInit);
     void setRealSensor();
     void setVirtualSensor();
