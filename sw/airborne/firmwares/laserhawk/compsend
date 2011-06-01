@@ -1,0 +1,3 @@
+gzip -f $1
+scp  $1.gz bvandepo@140.93.4.43:~/log/
+#scp  $1 bvandepo@140.93.4.43:~/log/
