@@ -5,6 +5,10 @@
 #include "chokuyoplus.h"
 
 
+#include "RLE.h"
+
+uint16_t TABOUT[1081*2]; //prévoir que les données compressées puissent être plus grande que les nons compressées, cas le pire: 1 pixel sur 2 est à 1, ratio 3/2
+uint32_t TABOUT2[1081]; //buffer pour décompresser
 
 
 #include <stdint.h>
@@ -14,115 +18,13 @@ CHokuyoPlus *HokuyoSensor;
 //typedef unsigned short int            uint16_t;
 
 
-
-
-uint16_t TABOUT[1081*2]; //prévoir que les données compressées puissent être plus grande que les nons compressées, cas le pire: 1 pixel sur 2 est à 1, ratio 3/2
-uint32_t TABOUT2[1081]; //buffer pour décompresser
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-//retourne le nombre d'octets utilisés
-int CodeRLE(uint32_t * datain, uint16_t * dataout, int nbdatain        )
-{
-    int cptdataout=0;
-    int nbun;
-    uint32_t in;
-    int cptdatain;
-    int compteurdeun=0;
-    for ( cptdatain=0;cptdatain<nbdatain;)
-    {
-        cptdatain++;
-        if (datain[cptdatain]==1)
-            compteurdeun++;
-
-    }
-    //  printf("%d  un dans les données\n",compteurdeun);
-    for ( cptdatain=0;cptdatain<nbdatain;)
-    {
-        in=datain[cptdatain];
-        if (in!=1)
-        {
-            dataout[cptdataout]=in;
-            cptdataout++;
-            cptdatain++;
-        }
-        else
-        {//compte le nombre de 1 successifs
-            nbun=0;
-            while ( (cptdatain<nbdatain) && (datain[cptdatain]==1) )
-            {
-                cptdatain++;
-                nbun++;
-            }
-            dataout[cptdataout]=1;
-            cptdataout++;
-            dataout[cptdataout]=nbun    ;
-            cptdataout++;
-        }
-    }
-    return cptdataout;
-}
-////////////////////////////////////////////////////////////////////////////////////////
-//retourne le nombre d'octets décodés, ca devrait être 1081 si on a compressé un scan complet
-int DecodeRLE(uint16_t * datain, int nbdatain  ,uint32_t * dataout )
-{
-    int cptdataout=0;
-    int nbun;
-    uint16_t in;
-    int cptdatain;
-    int compteurdeun=0;
-    for ( cptdatain=0;cptdatain<nbdatain;)
-    {
-        cptdatain++;
-        if (datain[cptdatain]==1)
-        {
-            cptdatain++;
-            compteurdeun+=datain[cptdatain];
-        }
-    }
-    //    printf("%d  un dans les données\n",compteurdeun);
-    for ( cptdatain=0;cptdatain<nbdatain;)
-    {
-        in=datain[cptdatain];
-        if (in!=1)
-        {
-            dataout[cptdataout]=in;
-            cptdataout++;
-            cptdatain++;
-        }
-        else
-        {//reconstruit le nombre de 1 successifs
-            cptdatain++;
-            nbun=datain[cptdatain];
-            cptdatain++;
-            while ( nbun>0 )
-            {
-                dataout[cptdataout]=1;
-                cptdataout++;
-                nbun--;
-            }
-        }
-    }
-    return cptdataout;
-}
-////////////////////////////////////////////////////////////////////////////////////////
-int CompareBuffer(uint32_t * dataA,uint32_t * dataB,  int nbdata)
-{
-    int nberreurs=0;
-    for (int n=0;n<nbdata;n++)
-    {
-        //      printf("%d :  %d <-> %d \n",n,dataA[n],dataB[n]);
-        if (dataA[n]!=dataB[n])
-            nberreurs++;
-    }
-    return nberreurs;
-}
 ////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[]) {	
     //int doprint = 0;
     //       printf("should be 2: %d\n",sizeof(uint16_t));
 
-    if (argc <= 2) {
+    if (argc <= 2)
+		{
         printf("hokuyomti hokuyodevice system_call_period\n ex: getrange /dev/ttyACM0 40\n");
         exit(EXIT_SUCCESS);
     }
@@ -160,6 +62,7 @@ int main(int argc, char *argv[]) {
     cout << info.AsString();
 
     printf("scanning from step %d to %d\n",HokuyoSensor->firstStep, HokuyoSensor->lastStep );
+ 
 
 //    FILE * ff=fopen("log","wb");
     FILE * ffcomp=NULL;
@@ -191,11 +94,13 @@ int main(int argc, char *argv[]) {
             }
 
             sprintf(nomfichlog,"log/logcomp%d",cpt/sysperiod);
+ 
             ffcomp=fopen(nomfichlog,"wb");
             // printf("\norigin %lf s\n",  torigin);
             // printf("\nfin %lf s\n", hokuyotime);
             if (cpt!=0)
             {
+
                 printf("\n%d scans; %d scans dans %lf s\n",cpt,sysperiod, hokuyotime-torigin);
                 torigin=hokuyotime;  //faux la premiere fois
             }

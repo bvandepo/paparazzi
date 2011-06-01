@@ -9,6 +9,7 @@
 static void on_Attitude(IvyClientPtr app, void *user_data, int argc, char *argv[]){
   //  guint ac_id = atoi(argv[0]);
   //  float estimator_phi = atof(argv[1]);
+	printf("ATTITUDE %s\n",argv[0]);
 }
 
 
@@ -19,7 +20,8 @@ int main ( int argc, char** argv) {
   IvyInit ("Example1", "Example1 READY", NULL, NULL, NULL, NULL);
   IvyBindMsg(on_Attitude, NULL, "^(\\S*) ATTITUDE (\\S*) (\\S*) (\\S*)");
 
-  IvyStart("127.255.255.255");
+//  IvyStart("127.255.255.255");
+	  IvyStart("127.0.0.1");
   
   g_main_loop_run(ml);
 
