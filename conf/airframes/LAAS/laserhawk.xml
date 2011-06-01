@@ -150,8 +150,21 @@ getrange.CFLAGS += -DOVERO_LINK_MSG_UP=AutopilotMessageBethUp -DOVERO_LINK_MSG_D
 getrange.LDFLAGS = -lflexiport -lhokuyo_aist -lrt
 getrange.CXXFLAGS = -I/home/paul/Documents/LAAS/openrobots/include/gearbox
 getrange.cpp_srcs    = $(SRC_LASERHAWK)/main.cpp
+getrange.cpp_srcs    += $(SRC_LASERHAWK)/RLE.cpp
 getrange.cpp_srcs    += $(SRC_LASERHAWK)/chokuyoplus.cpp
 getrange.cpp_srcs    += $(SRC_LASERHAWK)/pnm_io2.cpp
+
+#MTItest
+
+mti.ARCHDIR = omap
+mti.CFLAGS = -I. -I$(SRC_FMS) 
+mti.CFLAGS += -DFMS_PERIODIC_FREQ=512
+mti.CFLAGS += -DOVERO_LINK_MSG_UP=AutopilotMessageBethUp -DOVERO_LINK_MSG_DOWN=AutopilotMessageBethDown
+
+mti.LDFLAGS = -lrt -lMTI -L/opt/paparazzi/omap/overo-oe/tmp/sysroots/armv7a-angstrom-linux-gnueabi/usr/lib/
+#mti.CXXFLAGS += -I/home/paul/Documents/LAAS/robotpkg/hardware/MTI/work.paul-Inspiron-1210/MTI-0.4/MTI
+mti.CXXFLAGS = -I/home/paul/Documents/LAAS/openrobots/include/MTI-clients
+mti.cpp_srcs    = $(SRC_LASERHAWK)/test.cpp
 
 #
 # overo uart test
